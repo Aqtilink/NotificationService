@@ -1,0 +1,6 @@
+/home/gasper/uni/3letnik/prpo/projekt/notification-service/src/main/java/com/aqtilink/notification_service/NotificationServiceApplication.java
+/home/gasper/uni/3letnik/prpo/projekt/notification-service/src/main/java/com/aqtilink/notification_service/config/RabbitMQConfig.java
+/home/gasper/uni/3letnik/prpo/projekt/notification-service/src/main/java/com/aqtilink/notification_service/controller/NotificationController.java
+/home/gasper/uni/3letnik/prpo/projekt/notification-service/src/main/java/com/aqtilink/notification_service/dto/NotificationEventDTO.java
+/home/gasper/uni/3letnik/prpo/projekt/notification-service/src/main/java/com/aqtilink/notification_service/listener/NotificationListener.java
+/home/gasper/uni/3letnik/prpo/projekt/notification-service/src/main/java/com/aqtilink/notification_service/service/NotificationService.java
