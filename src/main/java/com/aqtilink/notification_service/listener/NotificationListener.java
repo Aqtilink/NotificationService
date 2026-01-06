@@ -10,6 +10,5 @@ public class NotificationListener {
     @RabbitListener(queues = "notification-queue")
     public void receive(NotificationEventDTO dto) {
         System.out.println("Received notification: " + dto.getEmail() + " | " + dto.getMessage());
-        // tukaj kasneje lahko kličeš email-service
     }
 }
