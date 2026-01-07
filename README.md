@@ -7,7 +7,7 @@ A lightweight microservice that handles asynchronous email notifications for the
 The Notification Service is responsible for:
 - Receiving notification events from RabbitMQ message queue
 - Processing notification requests asynchronously
-- Sending email notifications to users
+- Sending email notifications to users -> For now only mock implementation (prints a msg to cmd line)
 - Handling activity notifications (new activities, friend invitations)
 - Managing notification delivery without blocking other services
 

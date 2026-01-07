@@ -4,6 +4,8 @@ import com.aqtilink.notification_service.dto.NotificationEventDTO;
 import com.aqtilink.notification_service.service.NotificationService;
 import org.springframework.web.bind.annotation.*;
 
+// Controller for handling notifications
+
 @RestController
 @RequestMapping("/api/v1/notifications")
 public class NotificationController {
