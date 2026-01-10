@@ -17,7 +17,7 @@ public class NotificationController {
     }
 
     @PostMapping
-    public void send(@RequestBody NotificationEventDTO dto) {
+    public void send(@RequestBody NotificationEventDTO dto) throws java.io.IOException {
         service.send(dto);
     }
 }

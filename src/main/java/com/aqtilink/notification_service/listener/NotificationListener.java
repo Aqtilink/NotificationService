@@ -18,7 +18,7 @@ public class NotificationListener {
     }
 
     @RabbitListener(queues = "notification-queue")
-    public void receive(NotificationEventDTO dto) {
+    public void receive(NotificationEventDTO dto) throws java.io.IOException {
         service.send(dto);
     }
 }
