@@ -24,7 +24,8 @@ public class NotificationService {
 
     public void send(NotificationEventDTO dto) throws IOException {
         System.out.println("\n\n");
-        System.out.println("Sending notification to");
+        System.out.println("Content of DTO: " + dto.getMessage());
+        System.out.println("Sending notification to email: " + dto.getEmail());
         System.out.println("\n\n");
 
         Email from = new Email("noreply@em5604.aqtilink.live");
