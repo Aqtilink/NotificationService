@@ -2,12 +2,8 @@ name: Build and Push Notification Service
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   workflow_dispatch:
-
-permissions:
-  contents: read
-  id-token: write
 
 jobs:
   build-and-push:
@@ -35,25 +31,4 @@ jobs:
             ${{ secrets.DOCKER_HUB_USERNAME }}/notification-service:${{ github.sha }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/notification-service:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/notification-service:buildcache,mode=max
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: latest
 
-      - name: Auth (Workload Identity)
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-
-      - name: Get GKE credentials
-        uses: google-github-actions/get-gke-credentials@v1
-        with:
-          cluster_name: ${{ secrets.GKE_CLUSTER }}
-          location: ${{ secrets.GKE_LOCATION }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      - name: Rollout
-        run: |
-          kubectl rollout restart deployment/activity-service -n aqtilink
-          kubectl rollout status deployment/activity-service -n aqtilink --timeout=5m
