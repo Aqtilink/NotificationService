@@ -7,7 +7,7 @@ A lightweight microservice that handles asynchronous email notifications for the
 The Notification Service is responsible for:
 - Receiving notification events from RabbitMQ message queue
 - Processing notification requests asynchronously
-- Sending email notifications to users -> For now only mock implementation (prints a msg to cmd line)
+- Sending real email notifications via SendGrid
 - Handling activity notifications (new activities, friend invitations)
 - Managing notification delivery without blocking other services
 
@@ -18,6 +18,7 @@ The Notification Service is responsible for:
 - **Framework**: Spring Boot 3.4.12
 - **Java Version**: 17
 - **Message Queue**: RabbitMQ (AMQP)
+- **Email Provider**: SendGrid API
 - **Message Format**: JSON
 
 ### Project Structure
@@ -102,12 +103,13 @@ Publisher → Exchange (notification-exchange)
 - Consumes messages from `notification-queue`
 - Automatically deserializes JSON to NotificationEventDTO
 - Processes incoming notification events
-- Currently logs received notifications to console
+- Logs received notifications to console
 
 ### NotificationService
-- Handles the actual notification sending logic
-- Prints notification details (email, subject, message)
-- Can be extended to integrate with email providers (SendGrid, AWS SES, etc.)
+- Handles the actual notification sending logic via SendGrid API
+- Sends real emails from `noreply@em5604.aqtilink.live`
+- Logs email delivery status and response details
+- Supports plain text email content
 
 ### RabbitMQConfig
 - Configures the direct exchange and queue
@@ -124,6 +126,9 @@ SPRING_RABBITMQ_HOST: localhost
 SPRING_RABBITMQ_PORT: 5672
 SPRING_RABBITMQ_USERNAME: guest
 SPRING_RABBITMQ_PASSWORD: guest
+
+# SendGrid Configuration
+SENDGRID_API_KEY: <your-sendgrid-api-key>
 
 # Server
 server.port: 8082
@@ -149,6 +154,9 @@ management.endpoints.web.exposure.include: health,info
 ### Message Queue
 - `spring-boot-starter-amqp` - RabbitMQ integration
 
+### Email Provider
+- `sendgrid-java` (v4.10.1) - SendGrid API client
+
 ### Development
 - `spring-boot-devtools` - Live reload support
 - `spring-boot-starter-test` - Testing framework
@@ -158,6 +166,7 @@ management.endpoints.web.exposure.include: health,info
 ### Prerequisites
 - Java 17+
 - RabbitMQ 3.12+
+- SendGrid API Key (from [SendGrid Dashboard](https://app.sendgrid.com/settings/api_keys))
 - Docker and Docker Compose (optional)
 
 ### Local Development
@@ -167,14 +176,30 @@ management.endpoints.web.exposure.include: health,info
    docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.12-management
    ```
 
-2. **Install dependencies**:
+2. **Set up SendGrid API Key**:
+   ```bash
+   export SENDGRID_API_KEY=your-api-key-here
+   ```
+   
+   Alternatively, create a `sendgrid.env` file:
+   ```bash
+   SENDGRID_API_KEY=your-api-key-here
+   ```
+
+3. **Install dependencies**:
    ```bash
    ./mvnw clean install
    ```
 
-3. **Run the service**:
+4. **Run the service**:
    ```bash
    ./mvnw spring-boot:run
+   ```
+   
+   Or with environment file:
+   ```bash
+   e SENDGRID_API_KEY=your-api-key-here \
+  -export $(cat sendgrid.env | xargs) && ./mvnw spring-boot:run
    ```
 
    Service will start at `http://localhost:8082`
@@ -205,6 +230,9 @@ services:
     ports:
       - "8082:8082"
     environment:
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+    env_file:
+      - sendgrid.env
       SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
       - rabbitmq
@@ -222,7 +250,9 @@ services:
      "message": "Your friend has created a new activity: Morning Run. Join them now!"
    }
    ```
+ via SendGrid API
 
+4. User receives email at their inbox from `noreply@em5604.aqtilink.live`
 2. **NotificationListener** receives the message from the queue
 
 3. **NotificationService** processes and sends the email
@@ -242,8 +272,8 @@ services:
 ### Activity Service Integration
 - **Event**: New activity created
 - **Queue**: notification-queue
-- **Trigger**: Activity creation with friend notifications
-- **Payload**: NotificationEventDTO with email, subject, message
+- HTML email templates
+- SMS notifications via SendGrid or TwilioficationEventDTO with email, subject, message
 
 ### Future Integrations
 - User Service for friend request notifications
@@ -263,30 +293,28 @@ services:
 - **Retry Policy**: Can be configured for message redelivery
 - **Logging**: All processing is logged to console
 
-## Development Guidelines
+## DSendGrid Configuration
 
-### Extending Email Providers
+The service uses SendGrid for email delivery. Current configuration:
 
-To add actual email sending functionality:
+- **From Address**: `noreply@em5604.aqtilink.live`
+- **Content Type**: `text/plain`
+- **API Key**: Configured via `SENDGRID_API_KEY` environment variable
 
-1. Add email provider dependency (e.g., SendGrid):
-   ```xml
-   <dependency>
-       <groupId>com.sendgrid</groupId>
-       <artifactId>sendgrid-java</artifactId>
-       <version>4.10.0</version>
-   </dependency>
-   ```
+To customize the sender email or enable HTML templates, modify the `NotificationService` class.
 
-2. Update `NotificationService` to call email provider:
+### Enabling HTML Email Templates
+
+To use HTML email templates instead of plain text:
+
+1. Update `NotificationService.send()` method:
    ```java
-   public void send(NotificationEventDTO dto) {
-       // Integrate with SendGrid, AWS SES, etc.
-   }
+   Content content = new Content("text/html", dto.getMessage());
    ```
 
-3. Add environment configuration:
-   ```yaml
+2. Format message with HTML in the DTO:
+   ```java
+   String htmlMessage = "<html><body><h1>Hello</h1><p>" + message + "</p></body></html>";
    email-provider:
      api-key: ${EMAIL_API_KEY}
    ```
